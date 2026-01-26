@@ -27,9 +27,15 @@ app.use(limiter);
 /* ---------- Routes ---------- */
 const authRoutes = require("./routes/authRoutes");
 const testRoutes = require("./routes/testRoutes");
+const projectRoutes = require("./routes/projectRoutes");
+const taskRoutes = require("./routes/taskRoutes");
+const activityRoutes = require("./routes/activityRoutes");
 
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
+app.use("/api/projects", projectRoutes);
+app.use("/api/projects", taskRoutes);
+app.use("/api/activities", activityRoutes);
 
 /* ---------- Health check ---------- */
 app.get("/api/health", (req, res) => {

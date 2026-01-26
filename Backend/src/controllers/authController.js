@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 // REGISTER
 exports.register = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role } = req.body;
 
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields required" });
@@ -20,10 +20,12 @@ exports.register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
+      role: role || "member", // Allow role to be set, defaults to member
     });
 
     res.status(201).json({
       message: "User registered successfully",
+      user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
     res.status(500).json({ message: "Registration failed" });
@@ -52,5 +54,31 @@ exports.login = async (req, res) => {
     res.json({ token });
   } catch (err) {
     res.status(500).json({ message: "Login failed" });
+  }
+};
+
+// UPDATE USER ROLE (Admin only)
+exports.updateUserRole = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { role } = req.body;
+
+    if (!["admin", "manager", "member"].includes(role)) {
+      return res.status(400).json({ message: "Invalid role" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      userId,
+      { role },
+      { new: true }
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.json({ message: "User role updated", user });
+  } catch (err) {
+    res.status(500).json({ message: "Error updating role" });
   }
 };
