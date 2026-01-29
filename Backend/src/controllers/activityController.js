@@ -1,7 +1,7 @@
 const ActivityLog = require("../models/ActivityLog");
 
 // GET ACTIVITY LOGS (Admin only - all activities)
-exports.getAllActivityLogs = async (req, res) => {
+exports.getAllActivityLogs = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, action, resource } = req.query;
 
@@ -25,12 +25,14 @@ exports.getAllActivityLogs = async (req, res) => {
       activities,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching logs", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching logs";
+    next(err);
   }
 };
 
 // GET USER'S OWN ACTIVITY LOG
-exports.getUserActivityLog = async (req, res) => {
+exports.getUserActivityLog = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, action, resource } = req.query;
 
@@ -54,12 +56,14 @@ exports.getUserActivityLog = async (req, res) => {
       activities,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching logs", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching logs";
+    next(err);
   }
 };
 
 // GET ACTIVITY LOG FOR SPECIFIC RESOURCE (Project, Task, etc.)
-exports.getResourceActivityLog = async (req, res) => {
+exports.getResourceActivityLog = async (req, res, next) => {
   try {
     const { resource, resourceId } = req.params;
 
@@ -76,12 +80,14 @@ exports.getResourceActivityLog = async (req, res) => {
       activities,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching logs", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching logs";
+    next(err);
   }
 };
 
 // GET ACTIVITY STATISTICS (Admin dashboard)
-exports.getActivityStats = async (req, res) => {
+exports.getActivityStats = async (req, res, next) => {
   try {
     const { days = 7 } = req.query;
 
@@ -115,6 +121,8 @@ exports.getActivityStats = async (req, res) => {
       byAction: stats,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching stats", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching stats";
+    next(err);
   }
 };

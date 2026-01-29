@@ -2,6 +2,8 @@ const express = require("express");
 const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cors = require("cors");
+const errorHandler = require("./middleware/error_handler");
+
 require("dotenv").config();
 
 const app = express();
@@ -49,6 +51,9 @@ app.get("/", (req, res) => {
 app.get("/api/some-endpoint", (req, res) => {
   res.json({ message: "Hello from backend" });
 });
+
+/* ---------- Global Error Handler (LAST) ---------- */
+app.use(errorHandler);
 
 /* ---------- Server start ---------- */
 const PORT = process.env.PORT || 5000;

@@ -3,7 +3,7 @@ const Project = require("../models/Project");
 const { logActivity } = require("../utils/activityLogger");
 
 // CREATE TASK
-exports.createTask = async (req, res) => {
+exports.createTask = async (req, res, next) => {
   try {
     const { projectId } = req.params;
     const { title, description, assignedTo, priority, dueDate } = req.body;
@@ -48,12 +48,14 @@ exports.createTask = async (req, res) => {
       task,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error creating task", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error creating task";
+    next(err);
   }
 };
 
 // GET TASKS FOR PROJECT
-exports.getProjectTasks = async (req, res) => {
+exports.getProjectTasks = async (req, res, next) => {
   try {
     const { projectId } = req.params;
 
@@ -80,12 +82,14 @@ exports.getProjectTasks = async (req, res) => {
       tasks,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching tasks", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching tasks";
+    next(err);
   }
 };
 
 // UPDATE TASK (Creator or assigned person)
-exports.updateTask = async (req, res) => {
+exports.updateTask = async (req, res, next) => {
   try {
     const { projectId, taskId } = req.params;
     const { title, description, status, priority, assignedTo, dueDate } = req.body;
@@ -119,12 +123,14 @@ exports.updateTask = async (req, res) => {
 
     res.json({ message: "Task updated", task });
   } catch (err) {
-    res.status(500).json({ message: "Error updating task", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error updating task";
+    next(err);
   }
 };
 
 // DELETE TASK (Only creator)
-exports.deleteTask = async (req, res) => {
+exports.deleteTask = async (req, res, next) => {
   try {
     const { projectId, taskId } = req.params;
 
@@ -135,18 +141,20 @@ exports.deleteTask = async (req, res) => {
     }
 
     if (!task.createdBy.equals(req.user.id)) {
-    // Log activity
+      return res.status(403).json({ message: "Only creator can delete task" });
+    }
+
+    // ✅ Log ONLY after authorization
     await logActivity(req.user.id, "DELETE_TASK", "Task", taskId, {
       details: `Deleted task`,
     });
-
-      return res.status(403).json({ message: "Only creator can delete task" });
-    }
 
     await Task.findByIdAndDelete(taskId);
 
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Error deleting task", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error deleting task";
+    next(err);
   }
 };

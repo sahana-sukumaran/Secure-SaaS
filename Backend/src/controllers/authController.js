@@ -3,7 +3,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 // REGISTER
-exports.register = async (req, res) => {
+exports.register = async (req, res, next) => {
   try {
     const { name, email, password, role } = req.body;
 
@@ -28,12 +28,14 @@ exports.register = async (req, res) => {
       user: { id: user._id, name: user.name, email: user.email, role: user.role },
     });
   } catch (err) {
-    res.status(500).json({ message: "Registration failed" });
+    err.statusCode = 500;
+    err.message = "Registration failed";
+    next(err);
   }
 };
 
 // LOGIN
-exports.login = async (req, res) => {
+exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
@@ -53,12 +55,14 @@ exports.login = async (req, res) => {
 
     res.json({ token });
   } catch (err) {
-    res.status(500).json({ message: "Login failed" });
+    err.statusCode = 500;
+    err.message = "Login failed";
+    next(err);
   }
 };
 
 // UPDATE USER ROLE (Admin only)
-exports.updateUserRole = async (req, res) => {
+exports.updateUserRole = async (req, res, next) => {
   try {
     const { userId } = req.params;
     const { role } = req.body;
@@ -79,6 +83,8 @@ exports.updateUserRole = async (req, res) => {
 
     res.json({ message: "User role updated", user });
   } catch (err) {
-    res.status(500).json({ message: "Error updating role" });
+    err.statusCode = 500;
+    err.message = "Error updating role";
+    next(err);
   }
 };

@@ -2,7 +2,7 @@ const Project = require("../models/Project");
 const { logActivity } = require("../utils/activityLogger");
 
 // CREATE PROJECT
-exports.createProject = async (req, res) => {
+exports.createProject = async (req, res, next) => {
   try {
     const { name, description } = req.body;
 
@@ -27,12 +27,14 @@ exports.createProject = async (req, res) => {
       project,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error creating project", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error creating project";
+    next(err);
   }
 };
 
 // GET ALL PROJECTS FOR USER
-exports.getUserProjects = async (req, res) => {
+exports.getUserProjects = async (req, res, next) => {
   try {
     // Find projects where user is owner or member
     const projects = await Project.find({
@@ -50,12 +52,14 @@ exports.getUserProjects = async (req, res) => {
       projects,
     });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching projects", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching projects";
+    next(err);
   }
 };
 
 // GET PROJECT BY ID
-exports.getProjectById = async (req, res) => {
+exports.getProjectById = async (req, res, next) => {
   try {
     const { projectId } = req.params;
 
@@ -77,12 +81,14 @@ exports.getProjectById = async (req, res) => {
 
     res.json({ message: "Project retrieved", project });
   } catch (err) {
-    res.status(500).json({ message: "Error fetching project", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error fetching project";
+    next(err);
   }
 };
 
 // UPDATE PROJECT (Only owner or manager)
-exports.updateProject = async (req, res) => {
+exports.updateProject = async (req, res, next) => {
   try {
     const { projectId } = req.params;
     const { name, description, status } = req.body;
@@ -111,12 +117,14 @@ exports.updateProject = async (req, res) => {
 
     res.json({ message: "Project updated", project });
   } catch (err) {
-    res.status(500).json({ message: "Error updating project", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error updating project";
+    next(err);
   }
 };
 
 // DELETE PROJECT (Only owner)
-exports.deleteProject = async (req, res) => {
+exports.deleteProject = async (req, res, next) => {
   try {
     const { projectId } = req.params;
 
@@ -127,24 +135,27 @@ exports.deleteProject = async (req, res) => {
     }
 
     if (!project.owner.equals(req.user.id)) {
-    // Log activity
-    await logActivity(req.user.id, "DELETE_PROJECT", "Project", projectId, {
-      details: `Deleted project: ${project.name}`,
-    });
+  return res.status(403).json({ message: "Only project owner can delete" });
+}
 
-      return res.status(403).json({ message: "Only project owner can delete" });
-    }
+// Log activity ✅ only after permission check
+await logActivity(req.user.id, "DELETE_PROJECT", "Project", projectId, {
+  details: `Deleted project: ${project.name}`,
+});
 
-    await Project.findByIdAndDelete(projectId);
+await Project.findByIdAndDelete(projectId);
+
 
     res.json({ message: "Project deleted successfully" });
   } catch (err) {
-    res.status(500).json({ message: "Error deleting project", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error deleting project";
+    next(err);
   }
 };
 
 // ADD MEMBER TO PROJECT (Only owner)
-exports.addMember = async (req, res) => {
+exports.addMember = async (req, res, next) => {
   try {
     const { projectId } = req.params;
     const { userId, role } = req.body;
@@ -180,6 +191,8 @@ exports.addMember = async (req, res) => {
 
     res.json({ message: "Member added to project", project });
   } catch (err) {
-    res.status(500).json({ message: "Error adding member", error: err.message });
+    err.statusCode = 500;
+    err.message = "Error adding member";
+    next(err);
   }
 };
