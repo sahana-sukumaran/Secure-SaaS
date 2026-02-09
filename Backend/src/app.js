@@ -3,6 +3,8 @@ const helmet = require("helmet");
 const rateLimit = require("express-rate-limit");
 const cors = require("cors");
 const errorHandler = require("./middleware/error_handler");
+const path = require('path');
+const uploadRoutes = require('./routes/uploadRoutes');
 
 require("dotenv").config();
 
@@ -38,6 +40,10 @@ app.use("/api/test", testRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/projects", taskRoutes);
 app.use("/api/activities", activityRoutes);
+
+// Upload route and serve uploaded files
+app.use(uploadRoutes);
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 /* ---------- Health check ---------- */
 app.get("/api/health", (req, res) => {

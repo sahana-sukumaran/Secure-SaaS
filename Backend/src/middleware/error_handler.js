@@ -30,6 +30,22 @@ module.exports = (err, req, res, next) => {
     message = "Token expired";
   }
 
+  // Multer (file upload) errors
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      message = 'File too large. Maximum size is 2MB.';
+    } else {
+      message = err.message || 'File upload error';
+    }
+  }
+
+  // Custom file filter errors (thrown in middleware)
+  if (err.message && err.message.includes('Invalid file type')) {
+    statusCode = err.statusCode || 400;
+    message = err.message;
+  }
+
   res.status(statusCode).json({
     success: false,
     message,
