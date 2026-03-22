@@ -11,6 +11,7 @@ const ActivityLog = require("../models/ActivityLog");
 const logActivity = async (userId, action, resource, resourceId, options = {}) => {
   try {
     const activityLog = await ActivityLog.create({
+      tenantId: options.tenantId,
       user: userId,
       action,
       resource,

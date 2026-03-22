@@ -11,6 +11,8 @@ API="http://localhost:5000/api"
 
 # Generate unique emails based on timestamp to avoid conflicts
 TIMESTAMP=$(date +%s%N)
+TENANT_ID="000000000000000000000001"
+TENANT2_ID="000000000000000000000002"
 ADMIN_EMAIL="admin_${TIMESTAMP}@example.com"
 MANAGER_EMAIL="manager_${TIMESTAMP}@example.com"
 MEMBER_EMAIL="member_${TIMESTAMP}@example.com"
@@ -25,38 +27,53 @@ echo -e "${YELLOW}[1] Registering Users...${NC}"
 echo "Registering Admin User..."
 ADMIN_RESPONSE=$(curl -s -X POST $API/auth/register \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"Admin User\",\"email\":\"$ADMIN_EMAIL\",\"password\":\"password123\",\"role\":\"admin\"}")
+  -d "{\"tenantId\":\"$TENANT_ID\",\"name\":\"Admin User\",\"email\":\"$ADMIN_EMAIL\",\"password\":\"password123\",\"role\":\"admin\"}")
 echo "✓ Admin registered"
 
 echo "Registering Manager User..."
 MANAGER_RESPONSE=$(curl -s -X POST $API/auth/register \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"Manager User\",\"email\":\"$MANAGER_EMAIL\",\"password\":\"password123\",\"role\":\"manager\"}")
+  -d "{\"tenantId\":\"$TENANT_ID\",\"name\":\"Manager User\",\"email\":\"$MANAGER_EMAIL\",\"password\":\"password123\",\"role\":\"manager\"}")
 echo "✓ Manager registered"
 
 echo "Registering Member User..."
 MEMBER_RESPONSE=$(curl -s -X POST $API/auth/register \
   -H "Content-Type: application/json" \
-  -d "{\"name\":\"Member User\",\"email\":\"$MEMBER_EMAIL\",\"password\":\"password123\",\"role\":\"member\"}")
+  -d "{\"tenantId\":\"$TENANT_ID\",\"name\":\"Member User\",\"email\":\"$MEMBER_EMAIL\",\"password\":\"password123\",\"role\":\"member\"}")
 echo "✓ Member registered\n"
+
+# Register user in tenant2 to validate isolation
+SECOND_TENANT_EMAIL="second_${TIMESTAMP}@example.com"
+SECOND_TENANT_TOKEN=""
+
+echo "Registering Tenant2 Member User..."
+SECOND_RESPONSE=$(curl -s -X POST $API/auth/register \
+  -H "Content-Type: application/json" \
+  -d "{\"tenantId\":\"$TENANT2_ID\",\"name\":\"Tenant2 User\",\"email\":\"$SECOND_TENANT_EMAIL\",\"password\":\"password123\",\"role\":\"member\"}")
+echo "✓ Tenant2 member registered\n"
 
 # 2. LOGIN & GET TOKENS
 echo -e "${YELLOW}[2] Logging in & Getting Tokens...${NC}"
 
 ADMIN_TOKEN=$(curl -s -X POST $API/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$ADMIN_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+  -d "{\"tenantId\":\"$TENANT_ID\",\"email\":\"$ADMIN_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^\"]*"' | cut -d'"' -f4)
 echo -e "✓ Admin Token: ${GREEN}${ADMIN_TOKEN:0:20}...${NC}"
 
 MANAGER_TOKEN=$(curl -s -X POST $API/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$MANAGER_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+  -d "{\"tenantId\":\"$TENANT_ID\",\"email\":\"$MANAGER_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^\"]*"' | cut -d'"' -f4)
 echo -e "✓ Manager Token: ${GREEN}${MANAGER_TOKEN:0:20}...${NC}"
 
 MEMBER_TOKEN=$(curl -s -X POST $API/auth/login \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"$MEMBER_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+  -d "{\"tenantId\":\"$TENANT_ID\",\"email\":\"$MEMBER_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^\"]*"' | cut -d'"' -f4)
 echo -e "✓ Member Token: ${GREEN}${MEMBER_TOKEN:0:20}...${NC}\n"
+
+SECOND_TENANT_TOKEN=$(curl -s -X POST $API/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"tenantId\":\"$TENANT2_ID\",\"email\":\"$SECOND_TENANT_EMAIL\",\"password\":\"password123\"}" | grep -o '"token":"[^\"]*"' | cut -d'"' -f4)
+echo -e "✓ Tenant2 Token: ${GREEN}${SECOND_TENANT_TOKEN:0:20}...${NC}\n"
 
 # 3. TEST RBAC - PROTECTED ENDPOINTS
 echo -e "${YELLOW}[3] Testing RBAC Authorization...${NC}"
@@ -157,6 +174,15 @@ if echo "$RESPONSE" | grep -q "owner"; then
   echo -e "${GREEN}✓ Correctly denied (only owner can update)${NC}"
 else
   echo -e "${RED}✗ Should have been denied${NC}"
+fi
+
+echo "Testing cross-tenant project access (tenant2 should not see tenant1 project):"
+RESPONSE=$(curl -s -X GET $API/projects/$PROJECT_ID \
+  -H "Authorization: Bearer $SECOND_TENANT_TOKEN")
+if echo "$RESPONSE" | grep -q "not found\|Access denied\|403"; then
+  echo -e "${GREEN}✓ Cross-tenant access denied (good)${NC}"
+else
+  echo -e "${RED}✗ Cross-tenant access leak!${NC}"
 fi
 
 echo ""

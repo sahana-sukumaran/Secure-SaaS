@@ -5,7 +5,7 @@ exports.getAllActivityLogs = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, action, resource } = req.query;
 
-    let filter = {};
+    let filter = { tenantId: req.user.tenantId };
     if (action) filter.action = action;
     if (resource) filter.resource = resource;
 
@@ -36,7 +36,7 @@ exports.getUserActivityLog = async (req, res, next) => {
   try {
     const { page = 1, limit = 20, action, resource } = req.query;
 
-    let filter = { user: req.user.id };
+    let filter = { user: req.user.id, tenantId: req.user.tenantId };
     if (action) filter.action = action;
     if (resource) filter.resource = resource;
 
@@ -68,6 +68,7 @@ exports.getResourceActivityLog = async (req, res, next) => {
     const { resource, resourceId } = req.params;
 
     const activities = await ActivityLog.find({
+      tenantId: req.user.tenantId,
       resource,
       resourceId,
     })
@@ -97,6 +98,7 @@ exports.getActivityStats = async (req, res, next) => {
     const stats = await ActivityLog.aggregate([
       {
         $match: {
+          tenantId: req.user.tenantId,
           createdAt: { $gte: startDate },
         },
       },
@@ -112,6 +114,7 @@ exports.getActivityStats = async (req, res, next) => {
     ]);
 
     const totalActivities = await ActivityLog.countDocuments({
+      tenantId: req.user.tenantId,
       createdAt: { $gte: startDate },
     });
 

@@ -13,7 +13,7 @@ exports.createTask = async (req, res, next) => {
     }
 
     // Check if project exists and user is member
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
@@ -26,6 +26,7 @@ exports.createTask = async (req, res, next) => {
     }
 
     const task = await Task.create({
+      tenantId: req.user.tenantId,
       title,
       description,
       project: projectId,
@@ -40,6 +41,7 @@ exports.createTask = async (req, res, next) => {
 
     // Log activity
     await logActivity(req.user.id, "CREATE_TASK", "Task", task._id, {
+      tenantId: req.user.tenantId,
       details: `Created task: ${title}`,
     });
 
@@ -60,7 +62,7 @@ exports.getProjectTasks = async (req, res, next) => {
     const { projectId } = req.params;
 
     // Check if user is member of project
-    const project = await Project.findById(projectId);
+    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
@@ -72,7 +74,7 @@ exports.getProjectTasks = async (req, res, next) => {
       return res.status(403).json({ message: "Not a member of this project" });
     }
 
-    const tasks = await Task.find({ project: projectId })
+    const tasks = await Task.find({ project: projectId, tenantId: req.user.tenantId })
       .populate("createdBy", "name email")
       .populate("assignedTo", "name email");
 
@@ -94,7 +96,7 @@ exports.updateTask = async (req, res, next) => {
     const { projectId, taskId } = req.params;
     const { title, description, status, priority, assignedTo, dueDate } = req.body;
 
-    const task = await Task.findById(taskId);
+    const task = await Task.findOne({ _id: taskId, tenantId: req.user.tenantId });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -118,6 +120,7 @@ exports.updateTask = async (req, res, next) => {
 
     // Log activity
     await logActivity(req.user.id, "UPDATE_TASK", "Task", task._id, {
+      tenantId: req.user.tenantId,
       details: `Updated task: ${task.title}`,
     });
 
@@ -134,7 +137,7 @@ exports.deleteTask = async (req, res, next) => {
   try {
     const { projectId, taskId } = req.params;
 
-    const task = await Task.findById(taskId);
+    const task = await Task.findOne({ _id: taskId, tenantId: req.user.tenantId });
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
@@ -146,10 +149,11 @@ exports.deleteTask = async (req, res, next) => {
 
     // ✅ Log ONLY after authorization
     await logActivity(req.user.id, "DELETE_TASK", "Task", taskId, {
+      tenantId: req.user.tenantId,
       details: `Deleted task`,
     });
 
-    await Task.findByIdAndDelete(taskId);
+    await Task.findOneAndDelete({ _id: taskId, tenantId: req.user.tenantId });
 
     res.json({ message: "Task deleted successfully" });
   } catch (err) {
