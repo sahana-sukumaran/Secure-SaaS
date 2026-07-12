@@ -1,7 +1,7 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
 const { logActivity } = require("../utils/activityLogger");
-
+const createNotification = require("../utils/notificationService");
 // CREATE TASK
 exports.createTask = async (req, res, next) => {
   try {
@@ -44,6 +44,17 @@ exports.createTask = async (req, res, next) => {
       tenantId: req.user.tenantId,
       details: `Created task: ${title}`,
     });
+    // Create notification for assigned user
+if (assignedTo) {
+  await createNotification({
+    tenantId: req.user.tenantId,
+    user: assignedTo,
+    message: `You have been assigned the task "${title}"`,
+    type: "TASK_ASSIGNED",
+    project: projectId,
+    task: task._id,
+  });
+}
 
     res.status(201).json({
       message: "Task created successfully",
@@ -123,6 +134,17 @@ exports.updateTask = async (req, res, next) => {
       tenantId: req.user.tenantId,
       details: `Updated task: ${task.title}`,
     });
+    // Notify task creator when task is completed
+if (status === "completed") {
+  await createNotification({
+    tenantId: req.user.tenantId,
+    user: task.createdBy,
+    message: `Task "${task.title}" has been marked as completed.`,
+    type: "TASK_COMPLETED",
+    project: projectId,
+    task: task._id,
+  });
+}
 
     res.json({ message: "Task updated", task });
   } catch (err) {
