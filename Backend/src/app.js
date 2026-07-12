@@ -36,11 +36,13 @@ const taskRoutes = require("./routes/taskRoutes");
 const activityRoutes = require("./routes/activityRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const tenantRoutes = require("./routes/tenantRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/test", testRoutes);
 app.use("/api/projects", projectRoutes);
 app.use("/api/projects", taskRoutes);
 app.use("/api/activities", activityRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/tenants", tenantRoutes);
 // Upload route and serve uploaded files
