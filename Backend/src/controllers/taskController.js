@@ -2,6 +2,7 @@ const Task = require("../models/Task");
 const Project = require("../models/Project");
 const { logActivity } = require("../utils/activityLogger");
 const createNotification = require("../utils/notificationService");
+const { createCommentPayload, canDeleteComment } = require("../utils/taskCommentPermissions");
 // CREATE TASK
 exports.createTask = async (req, res, next) => {
   try {
@@ -38,6 +39,7 @@ exports.createTask = async (req, res, next) => {
 
     await task.populate("createdBy", "name email");
     await task.populate("assignedTo", "name email");
+    await task.populate("comments.author", "name email");
 
     // Log activity
     await logActivity(req.user.id, "CREATE_TASK", "Task", task._id, {
@@ -87,7 +89,8 @@ exports.getProjectTasks = async (req, res, next) => {
 
     const tasks = await Task.find({ project: projectId, tenantId: req.user.tenantId })
       .populate("createdBy", "name email")
-      .populate("assignedTo", "name email");
+      .populate("assignedTo", "name email")
+      .populate("comments.author", "name email");
 
     res.json({
       message: "Tasks retrieved",
@@ -128,6 +131,7 @@ exports.updateTask = async (req, res, next) => {
     await task.save();
     await task.populate("createdBy", "name email");
     await task.populate("assignedTo", "name email");
+    await task.populate("comments.author", "name email");
 
     // Log activity
     await logActivity(req.user.id, "UPDATE_TASK", "Task", task._id, {
@@ -181,6 +185,147 @@ exports.deleteTask = async (req, res, next) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = "Error deleting task";
+    next(err);
+  }
+};
+
+// ADD COMMENT TO TASK
+exports.addComment = async (req, res, next) => {
+  try {
+    const { projectId, taskId } = req.params;
+    const { text } = req.body;
+
+    if (!text || !text.trim()) {
+      return res.status(400).json({ message: "Comment text required" });
+    }
+
+    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isMember = project.owner.equals(req.user.id) ||
+      project.members.some((member) => member.user.equals(req.user.id));
+
+    if (!isMember) {
+      return res.status(403).json({ message: "Not a member of this project" });
+    }
+
+    const task = await Task.findOne({ _id: taskId, project: projectId, tenantId: req.user.tenantId });
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const commentPayload = createCommentPayload({ text }, req.user);
+    task.comments.push(commentPayload);
+    await task.save();
+
+    await task.populate("createdBy", "name email");
+    await task.populate("assignedTo", "name email");
+    await task.populate("comments.author", "name email");
+
+    const newComment = task.comments[task.comments.length - 1];
+
+    await logActivity(req.user.id, "ADD_TASK_COMMENT", "Task", task._id, {
+      tenantId: req.user.tenantId,
+      details: `Added comment to task: ${task.title}`,
+    });
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      comment: newComment,
+      task,
+    });
+  } catch (err) {
+    err.statusCode = 500;
+    err.message = "Error adding comment";
+    next(err);
+  }
+};
+
+// GET COMMENTS FOR TASK
+exports.getTaskComments = async (req, res, next) => {
+  try {
+    const { projectId, taskId } = req.params;
+
+    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isMember = project.owner.equals(req.user.id) ||
+      project.members.some((member) => member.user.equals(req.user.id));
+
+    if (!isMember) {
+      return res.status(403).json({ message: "Not a member of this project" });
+    }
+
+    const task = await Task.findOne({ _id: taskId, project: projectId, tenantId: req.user.tenantId })
+      .populate("comments.author", "name email");
+
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json({
+      message: "Comments retrieved",
+      count: task.comments.length,
+      comments: task.comments,
+    });
+  } catch (err) {
+    err.statusCode = 500;
+    err.message = "Error fetching comments";
+    next(err);
+  }
+};
+
+// DELETE COMMENT FROM TASK
+exports.deleteComment = async (req, res, next) => {
+  try {
+    const { projectId, taskId, commentId } = req.params;
+
+    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    const isMember = project.owner.equals(req.user.id) ||
+      project.members.some((member) => member.user.equals(req.user.id));
+
+    if (!isMember) {
+      return res.status(403).json({ message: "Not a member of this project" });
+    }
+
+    const task = await Task.findOne({ _id: taskId, project: projectId, tenantId: req.user.tenantId });
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    const comment = task.comments.id(commentId);
+    if (!comment) {
+      return res.status(404).json({ message: "Comment not found" });
+    }
+
+    if (!canDeleteComment(req.user, comment)) {
+      return res.status(403).json({ message: "Only the author or an admin can delete this comment" });
+    }
+
+    task.comments.pull(commentId);
+    await task.save();
+    await task.populate("comments.author", "name email");
+
+    await logActivity(req.user.id, "DELETE_TASK_COMMENT", "Task", task._id, {
+      tenantId: req.user.tenantId,
+      details: `Deleted a comment from task: ${task.title}`,
+    });
+
+    res.json({
+      message: "Comment deleted successfully",
+      comments: task.comments,
+    });
+  } catch (err) {
+    err.statusCode = 500;
+    err.message = "Error deleting comment";
     next(err);
   }
 };
