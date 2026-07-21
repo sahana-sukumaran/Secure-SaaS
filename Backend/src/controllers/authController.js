@@ -60,10 +60,14 @@ exports.login = async (req, res, next) => {
 
     res.json({ token });
   } catch (err) {
-    err.statusCode = 500;
-    err.message = "Login failed";
-    next(err);
-  }
+    console.error("LOGIN ERROR:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+      stack: err.stack
+    });
+}
 };
 
 // UPDATE USER ROLE (Admin only)

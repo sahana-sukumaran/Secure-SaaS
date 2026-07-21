@@ -14,8 +14,13 @@ const app = express();
 app.use(helmet());
 
 app.use(cors({
-  origin: "http://localhost:3000", // React frontend
-  credentials: true
+    origin: [
+        "http://localhost:3000",
+        "http://localhost:5173",
+        "http://localhost:8080",
+        "http://localhost:8081"  
+    ],
+    credentials: true
 }));
 
 app.use(express.json());

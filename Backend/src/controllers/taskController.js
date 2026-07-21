@@ -3,28 +3,55 @@ const Project = require("../models/Project");
 const { logActivity } = require("../utils/activityLogger");
 const createNotification = require("../utils/notificationService");
 const { createCommentPayload, canDeleteComment } = require("../utils/taskCommentPermissions");
+const { getTaskPriority } = require("../services/aiPriorityService");
+// CREATE TASK
 // CREATE TASK
 exports.createTask = async (req, res, next) => {
   try {
     const { projectId } = req.params;
-    const { title, description, assignedTo, priority, dueDate } = req.body;
+    const { title, description, assignedTo, dueDate } = req.body;
 
     if (!title) {
-      return res.status(400).json({ message: "Task title required" });
+      return res.status(400).json({
+        message: "Task title required",
+      });
     }
 
-    // Check if project exists and user is member
-    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
+    // Check if project exists
+    const project = await Project.findOne({
+      _id: projectId,
+      tenantId: req.user.tenantId,
+    });
+
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({
+        message: "Project not found",
+      });
     }
 
-    const isMember = project.owner.equals(req.user.id) ||
-      project.members.some(m => m.user.equals(req.user.id));
+    // Check membership
+    const isMember =
+      project.owner.equals(req.user.id) ||
+      project.members.some((m) => m.user.equals(req.user.id));
 
     if (!isMember) {
-      return res.status(403).json({ message: "Not a member of this project" });
+      return res.status(403).json({
+        message: "Not a member of this project",
+      });
     }
+
+    // ==========================
+    // AI PRIORITY GENERATION
+    // ==========================
+
+    const aiResult = await getTaskPriority({
+      title,
+      description,
+    });
+
+    // ==========================
+    // CREATE TASK
+    // ==========================
 
     const task = await Task.create({
       tenantId: req.user.tenantId,
@@ -33,7 +60,7 @@ exports.createTask = async (req, res, next) => {
       project: projectId,
       createdBy: req.user.id,
       assignedTo,
-      priority,
+      priority: aiResult.priority,
       dueDate,
     });
 
@@ -41,34 +68,49 @@ exports.createTask = async (req, res, next) => {
     await task.populate("assignedTo", "name email");
     await task.populate("comments.author", "name email");
 
-    // Log activity
-    await logActivity(req.user.id, "CREATE_TASK", "Task", task._id, {
-      tenantId: req.user.tenantId,
-      details: `Created task: ${title}`,
-    });
-    // Create notification for assigned user
-if (assignedTo) {
-  await createNotification({
-    tenantId: req.user.tenantId,
-    user: assignedTo,
-    message: `You have been assigned the task "${title}"`,
-    type: "TASK_ASSIGNED",
-    project: projectId,
-    task: task._id,
-  });
-}
+    // Activity Log
+    await logActivity(
+      req.user.id,
+      "CREATE_TASK",
+      "Task",
+      task._id,
+      {
+        tenantId: req.user.tenantId,
+        details: `Created task: ${title}`,
+      }
+    );
 
+    // Notification
+    if (assignedTo) {
+      await createNotification({
+        tenantId: req.user.tenantId,
+        user: assignedTo,
+        message: `You have been assigned the task "${title}"`,
+        type: "TASK_ASSIGNED",
+        project: projectId,
+        task: task._id,
+      });
+    }
+
+    // Return AI information WITHOUT storing it
     res.status(201).json({
       message: "Task created successfully",
+
+      aiSuggestion: {
+        priority: aiResult.priority,
+        estimated_time: aiResult.estimated_time,
+        reason: aiResult.reason,
+      },
+
       task,
     });
+
   } catch (err) {
     err.statusCode = 500;
     err.message = "Error creating task";
     next(err);
   }
 };
-
 // GET TASKS FOR PROJECT
 exports.getProjectTasks = async (req, res, next) => {
   try {
