@@ -53,16 +53,18 @@ exports.createTask = async (req, res, next) => {
     // CREATE TASK
     // ==========================
 
-    const task = await Task.create({
-      tenantId: req.user.tenantId,
-      title,
-      description,
-      project: projectId,
-      createdBy: req.user.id,
-      assignedTo,
-      priority: aiResult.priority,
-      dueDate,
-    });
+   const task = await Task.create({
+  tenantId: req.user.tenantId,
+  title,
+  description,
+  project: projectId,
+  createdBy: req.user.id,
+  assignedTo,
+  priority: aiResult.priority,
+aiEstimatedTime: aiResult.estimated_time,
+aiReason: aiResult.reason,
+dueDate,
+});
 
     await task.populate("createdBy", "name email");
     await task.populate("assignedTo", "name email");
@@ -368,6 +370,38 @@ exports.deleteComment = async (req, res, next) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = "Error deleting comment";
+    next(err);
+  }
+};
+// GET ALL TASKS FOR TENANT
+exports.getAllTasks = async (req, res, next) => {
+  try {
+    const { status } = req.query;
+
+    const filter = {
+      tenantId: req.user.tenantId,
+    };
+
+    if (status === "completed") {
+      filter.status = "completed";
+    } else if (status === "pending") {
+      filter.status = { $ne: "completed" };
+    }
+
+    const tasks = await Task.find(filter)
+      .populate("project", "name")
+      .populate("createdBy", "name email")
+      .populate("assignedTo", "name email")
+      .sort({ createdAt: -1 });
+
+    res.json({
+      message: "Tasks retrieved",
+      count: tasks.length,
+      tasks,
+    });
+  } catch (err) {
+    err.statusCode = 500;
+    err.message = "Error fetching all tasks";
     next(err);
   }
 };

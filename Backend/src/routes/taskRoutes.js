@@ -4,6 +4,7 @@ const protect = require("../middleware/authMiddleware");
 const {
   createTask,
   getProjectTasks,
+  getAllTasks,
   updateTask,
   deleteTask,
   addComment,
@@ -13,7 +14,7 @@ const {
 
 // All routes require authentication
 router.use(protect);
-
+router.get("/tasks", getAllTasks);
 // CREATE TASK
 router.post("/:projectId/tasks", createTask);
 

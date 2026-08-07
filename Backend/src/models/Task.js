@@ -60,6 +60,14 @@ const taskSchema = new mongoose.Schema(
       enum: ["low", "medium", "high"],
       default: "medium",
     },
+    aiEstimatedTime: {
+  type: String,
+  default: "Unknown",
+},
+aiReason: {
+  type: String,
+  default: "No reason provided",
+},
     dueDate: {
       type: Date,
     },

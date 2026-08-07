@@ -1,4 +1,5 @@
 const Project = require("../models/Project");
+const User = require("../models/User");
 const { logActivity } = require("../utils/activityLogger");
 
 // CREATE PROJECT
@@ -204,6 +205,25 @@ exports.addMember = async (req, res, next) => {
   } catch (err) {
     err.statusCode = 500;
     err.message = "Error adding member";
+    next(err);
+  }
+};
+// GET ALL TENANT MEMBERS
+exports.getTenantMembers = async (req, res, next) => {
+  try {
+    const members = await User.find(
+      { tenantId: req.user.tenantId },
+      "_id name email role"
+    ).sort({ name: 1 });
+
+    res.json({
+      message: "Members retrieved",
+      count: members.length,
+      members,
+    });
+  } catch (err) {
+    err.statusCode = 500;
+    err.message = "Error fetching members";
     next(err);
   }
 };

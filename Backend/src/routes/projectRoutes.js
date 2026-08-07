@@ -9,8 +9,8 @@ const {
   updateProject,
   deleteProject,
   addMember,
+  getTenantMembers,
 } = require("../controllers/projectController");
-
 // All routes require authentication
 router.use(protect);
 
@@ -19,7 +19,7 @@ router.post("/", createProject);
 
 // GET ALL USER'S PROJECTS
 router.get("/", getUserProjects);
-
+router.get("/members", getTenantMembers);
 // GET PROJECT BY ID
 router.get("/:projectId", getProjectById);
 

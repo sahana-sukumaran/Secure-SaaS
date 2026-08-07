@@ -1,6 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ShieldCheck } from "lucide-react";
+import {
+  ShieldCheck,
+  LockKeyhole,
+  Users,
+  Activity,
+} from "lucide-react";
 
 export function AuthShell({
   title,
@@ -15,47 +20,130 @@ export function AuthShell({
 }) {
   return (
     <div className="grid min-h-screen w-full grid-cols-1 lg:grid-cols-2">
-      {/* Left — form */}
-      <div className="flex flex-col justify-between px-6 py-8 sm:px-10">
-        <Link to="/" className="flex items-center gap-2">
-          <div className="grid h-8 w-8 place-items-center rounded-md bg-brand text-brand-foreground">
-            <ShieldCheck className="h-4 w-4" />
+      {/* LEFT — LOGIN */}
+      <div className="flex min-h-screen flex-col bg-background px-6 py-6 sm:px-10 lg:px-12">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex w-fit items-center gap-2 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <div className="grid h-9 w-9 place-items-center rounded-lg bg-brand text-brand-foreground shadow-sm">
+            <ShieldCheck className="h-5 w-5" />
           </div>
-          <span className="text-sm font-semibold tracking-tight">SecureFlow</span>
+
+          <span className="text-base font-semibold tracking-tight text-foreground">
+            SecureFlow
+          </span>
         </Link>
 
-        <div className="mx-auto w-full max-w-sm py-12">
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
-          <p className="mt-1.5 text-sm text-muted-foreground">{subtitle}</p>
-          <div className="mt-8">{children}</div>
-          {footer ? <div className="mt-6 text-sm text-muted-foreground">{footer}</div> : null}
+        {/* FORM AREA */}
+        <div className="flex flex-1 items-center justify-center py-12">
+          <div className="w-full max-w-[360px]">
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">
+              {title}
+            </h1>
+
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {subtitle}
+            </p>
+
+            <div className="mt-7">{children}</div>
+
+            {footer ? (
+              <div className="mt-6 text-center text-sm text-muted-foreground">
+                {footer}
+              </div>
+            ) : null}
+          </div>
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Protected by JWT-signed sessions · Rate-limited API
-        </p>
+        {/* SECURITY FOOTER */}
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <LockKeyhole className="h-3.5 w-3.5" />
+          <span>Protected by JWT-signed sessions · Rate-limited API</span>
+        </div>
       </div>
 
-      {/* Right — brand */}
+      {/* RIGHT — SECURITY / PRODUCT PANEL */}
       <aside className="relative hidden overflow-hidden bg-hero-gradient lg:block">
-        <div className="absolute inset-0 bg-grid-brand opacity-20" aria-hidden />
+        <div
+          className="absolute inset-0 bg-grid-brand opacity-20"
+          aria-hidden
+        />
+
+        {/* subtle glow */}
+        <div
+          className="absolute -right-32 -top-32 h-96 w-96 rounded-full bg-brand/20 blur-3xl"
+          aria-hidden
+        />
+
         <div className="relative flex h-full flex-col justify-between p-12 text-primary-foreground">
-          <div className="max-w-md">
-            <p className="text-xs uppercase tracking-[0.2em] text-primary-foreground/70">
+          {/* HEADER */}
+          <div className="max-w-lg">
+            <p className="text-xs uppercase tracking-[0.22em] text-primary-foreground/60">
               SecureFlow platform
             </p>
-            <h2 className="mt-4 text-3xl font-semibold leading-tight">
+
+            <h2 className="mt-5 text-4xl font-semibold leading-tight tracking-tight">
               A calmer command center for secure teamwork.
             </h2>
-            <p className="mt-4 text-sm text-primary-foreground/80">
-              Multi-tenant isolation, role-based access, and audited activity — so you can focus
-              on the work, not the plumbing.
+
+            <p className="mt-5 max-w-md text-sm leading-6 text-primary-foreground/75">
+              Multi-tenant isolation, role-based access, and audited activity —
+              so your team can focus on the work, not the plumbing.
             </p>
+
+            {/* SECURITY FEATURES */}
+            <div className="mt-10 grid gap-4">
+              <SecurityFeature
+                icon={ShieldCheck}
+                title="Role-based access"
+                description="Control what every team member can access."
+              />
+
+              <SecurityFeature
+                icon={Users}
+                title="Multi-tenant workspace"
+                description="Keep organizations and their data isolated."
+              />
+
+              <SecurityFeature
+                icon={Activity}
+                title="Audited activity"
+                description="Track important workspace actions securely."
+              />
+            </div>
           </div>
-          <div className="grid gap-4 rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur">
-            <Metric label="Active tenants" value="128" trend="+12% MoM" />
-            <Metric label="Tasks completed / wk" value="4.2k" trend="+8%" />
-            <Metric label="Uptime (90d)" value="99.98%" trend="SLO green" />
+
+          {/* PRODUCT METRICS */}
+          <div className="rounded-2xl border border-white/10 bg-white/5 p-6 backdrop-blur-md">
+            <p className="mb-5 text-xs font-medium uppercase tracking-wider text-primary-foreground/50">
+              Workspace security
+            </p>
+
+            <div className="grid grid-cols-3 gap-4">
+              <Metric
+                label="Projects"
+                value="2"
+              />
+
+              <Metric
+                label="Tasks"
+                value="1"
+              />
+
+              <Metric
+                label="Members"
+                value="3"
+              />
+            </div>
+
+            <div className="mt-5 flex items-center gap-2 border-t border-white/10 pt-4">
+              <span className="h-2 w-2 rounded-full bg-emerald-400" />
+              <span className="text-xs text-primary-foreground/70">
+                SecureFlow services operational
+              </span>
+            </div>
           </div>
         </div>
       </aside>
@@ -63,22 +151,55 @@ export function AuthShell({
   );
 }
 
-function Metric({ label, value, trend }: { label: string; value: string; trend: string }) {
+function SecurityFeature({
+  icon: Icon,
+  title,
+  description,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+}) {
   return (
-    <div className="flex items-center justify-between">
-      <div>
-        <p className="text-xs text-primary-foreground/60">{label}</p>
-        <p className="text-lg font-semibold text-primary-foreground">{value}</p>
+    <div className="flex items-start gap-3">
+      <div className="mt-0.5 grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-white/10 bg-white/5">
+        <Icon className="h-4 w-4" />
       </div>
-      <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] text-primary-foreground/80">
-        {trend}
-      </span>
+
+      <div>
+        <p className="text-sm font-medium text-primary-foreground">
+          {title}
+        </p>
+
+        <p className="mt-0.5 text-xs leading-5 text-primary-foreground/55">
+          {description}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) {
+  return (
+    <div>
+      <p className="text-xs text-primary-foreground/50">{label}</p>
+      <p className="mt-1 text-2xl font-semibold text-primary-foreground">
+        {value}
+      </p>
     </div>
   );
 }
 
 export function useClientReady() {
   const [ready, setReady] = useState(false);
+
   useEffect(() => setReady(true), []);
+
   return ready;
 }
