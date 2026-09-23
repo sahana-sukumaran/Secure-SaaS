@@ -49,9 +49,7 @@ function DashboardPage() {
   const query = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: async () => {
-      const { data } = await api.get<{ stats: DashboardStats }>(
-        "/api/dashboard",
-      );
+      const { data } = await api.get<{ stats: DashboardStats }>("/api/dashboard");
       return data.stats;
     },
   });
@@ -86,15 +84,11 @@ function DashboardPage() {
                 SecureFlow workspace
               </p>
 
-              <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-                Overview
-              </h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-foreground">Overview</h1>
             </div>
           </div>
 
-          <p className="mt-3 text-sm text-muted-foreground">
-            A quick pulse on your workspace.
-          </p>
+          <p className="mt-3 text-sm text-muted-foreground">A quick pulse on your workspace.</p>
         </div>
 
         {user?.tenantId ? (
@@ -132,9 +126,7 @@ function DashboardPage() {
           <div>
             <p className="font-medium">Couldn't load dashboard</p>
 
-            <p className="mt-1 text-destructive/90">
-              {apiErrorMessage(query.error)}
-            </p>
+            <p className="mt-1 text-destructive/90">{apiErrorMessage(query.error)}</p>
           </div>
         </div>
       ) : null}
@@ -161,7 +153,7 @@ function DashboardPage() {
         {/* Total Tasks */}
         <Link
           to="/tasks"
-          search={{status: undefined}}
+          search={{ status: undefined }}
           className="group block rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <StatCard
@@ -226,9 +218,7 @@ function DashboardPage() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-elev-1">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h2 className="text-base font-semibold text-foreground">
-                Getting started
-              </h2>
+              <h2 className="text-base font-semibold text-foreground">Getting started</h2>
 
               <p className="mt-1 text-sm text-muted-foreground">
                 Set up your workspace and start collaborating securely.
@@ -248,9 +238,7 @@ function DashboardPage() {
               <StepNumber number={1} />
 
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-foreground">
-                  Create your first project
-                </p>
+                <p className="text-sm font-medium text-foreground">Create your first project</p>
 
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   Organize your work into a secure project.
@@ -302,9 +290,7 @@ function DashboardPage() {
         <div className="rounded-xl border border-border bg-card p-6 shadow-elev-1">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-base font-semibold text-foreground">
-                Session
-              </h2>
+              <h2 className="text-base font-semibold text-foreground">Session</h2>
 
               <p className="mt-1 text-xs text-muted-foreground">
                 Current authenticated workspace session.
@@ -317,23 +303,11 @@ function DashboardPage() {
           </div>
 
           <dl className="mt-6 divide-y divide-border">
-            <SessionRow
-              label="Role"
-              value={user?.role ?? "—"}
-              badge
-            />
+            <SessionRow label="Role" value={user?.role ?? "—"} badge />
 
-            <SessionRow
-              label="User ID"
-              value={user?.id ?? "—"}
-              mono
-            />
+            <SessionRow label="User ID" value={user?.id ?? "—"} mono />
 
-            <SessionRow
-              label="Tenant ID"
-              value={user?.tenantId ?? "—"}
-              mono
-            />
+            <SessionRow label="Tenant ID" value={user?.tenantId ?? "—"} mono />
           </dl>
 
           <div className="mt-5 flex items-center gap-2 rounded-lg bg-success/10 px-3 py-2.5 text-xs text-success">
@@ -346,9 +320,7 @@ function DashboardPage() {
       {/* Quick actions */}
       <section className="mt-8">
         <div className="mb-3">
-          <h2 className="text-base font-semibold text-foreground">
-            Quick actions
-          </h2>
+          <h2 className="text-base font-semibold text-foreground">Quick actions</h2>
 
           <p className="mt-1 text-sm text-muted-foreground">
             Jump directly into the areas you use most.
@@ -365,9 +337,7 @@ function DashboardPage() {
             </div>
 
             <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">
-                Manage projects
-              </p>
+              <p className="text-sm font-semibold text-foreground">Manage projects</p>
 
               <p className="mt-1 text-xs text-muted-foreground">
                 View and create projects in your tenant.
@@ -383,9 +353,7 @@ function DashboardPage() {
             </div>
 
             <div className="flex-1">
-              <p className="text-sm font-semibold text-foreground">
-                Invite teammates
-              </p>
+              <p className="text-sm font-semibold text-foreground">Invite teammates</p>
 
               <p className="mt-1 text-xs text-muted-foreground">
                 Team invitations will be available soon.
@@ -437,9 +405,7 @@ function StatCard({
           {label}
         </span>
 
-        <span
-          className={`grid h-9 w-9 place-items-center rounded-lg ${accentClass}`}
-        >
+        <span className={`grid h-9 w-9 place-items-center rounded-lg ${accentClass}`}>
           <Icon className="h-4 w-4" />
         </span>
       </div>
@@ -448,9 +414,7 @@ function StatCard({
         {loading ? (
           <div className="h-8 w-16 animate-pulse rounded-md bg-muted" />
         ) : (
-          <p className="text-2xl font-semibold tracking-tight text-foreground">
-            {value ?? 0}
-          </p>
+          <p className="text-2xl font-semibold tracking-tight text-foreground">{value ?? 0}</p>
         )}
       </div>
 

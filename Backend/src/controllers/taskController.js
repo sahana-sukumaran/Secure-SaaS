@@ -39,6 +39,8 @@ exports.createTask = async (req, res, next) => {
         message: "Not a member of this project",
       });
     }
+    // Validate assigned user
+
 
     // ==========================
     // AI PRIORITY GENERATION
@@ -149,52 +151,121 @@ exports.getProjectTasks = async (req, res, next) => {
 };
 
 // UPDATE TASK (Creator or assigned person)
+// UPDATE TASK (Creator or assigned person)
 exports.updateTask = async (req, res, next) => {
   try {
     const { projectId, taskId } = req.params;
-    const { title, description, status, priority, assignedTo, dueDate } = req.body;
+    const {
+      title,
+      description,
+      status,
+      priority,
+      assignedTo,
+      dueDate,
+    } = req.body;
 
-    const task = await Task.findOne({ _id: taskId, tenantId: req.user.tenantId });
+    const task = await Task.findOne({
+      _id: taskId,
+      project: projectId,
+      tenantId: req.user.tenantId,
+    });
 
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      return res.status(404).json({
+        message: "Task not found",
+      });
     }
 
-    // Check if user is creator or assigned
-    if (!task.createdBy.equals(req.user.id) && !task.assignedTo?.equals(req.user.id)) {
-      return res.status(403).json({ message: "You can only update your own tasks" });
+    // Check if user is creator or assigned person
+    if (
+      !task.createdBy.equals(req.user.id) &&
+      !task.assignedTo?.equals(req.user.id)
+    ) {
+      return res.status(403).json({
+        message: "You can only update your own tasks",
+      });
     }
 
-    if (title) task.title = title;
-    if (description) task.description = description;
-    if (status) task.status = status;
-    if (priority) task.priority = priority;
-    if (assignedTo) task.assignedTo = assignedTo;
-    if (dueDate) task.dueDate = dueDate;
+    // Validate assigned user if assignment is being changed
+    if (assignedTo) {
+      const project = await Project.findOne({
+        _id: projectId,
+        tenantId: req.user.tenantId,
+      });
+
+      if (!project) {
+        return res.status(404).json({
+          message: "Project not found",
+        });
+      }
+
+      const isProjectMember =
+        project.owner.equals(assignedTo) ||
+        project.members.some((member) => member.user.equals(assignedTo));
+
+      if (!isProjectMember) {
+        return res.status(400).json({
+          message: "Assigned user is not a member of this project",
+        });
+      }
+
+      task.assignedTo = assignedTo;
+    }
+
+    if (title !== undefined) {
+      task.title = title;
+    }
+
+    if (description !== undefined) {
+      task.description = description;
+    }
+
+    if (status !== undefined) {
+      task.status = status;
+    }
+
+    if (priority !== undefined) {
+      task.priority = priority;
+    }
+
+    if (dueDate !== undefined) {
+      task.dueDate = dueDate || undefined;
+    }
 
     await task.save();
+
     await task.populate("createdBy", "name email");
     await task.populate("assignedTo", "name email");
     await task.populate("comments.author", "name email");
 
     // Log activity
-    await logActivity(req.user.id, "UPDATE_TASK", "Task", task._id, {
-      tenantId: req.user.tenantId,
-      details: `Updated task: ${task.title}`,
-    });
-    // Notify task creator when task is completed
-if (status === "completed") {
-  await createNotification({
-    tenantId: req.user.tenantId,
-    user: task.createdBy,
-    message: `Task "${task.title}" has been marked as completed.`,
-    type: "TASK_COMPLETED",
-    project: projectId,
-    task: task._id,
-  });
-}
+    await logActivity(
+      req.user.id,
+      "UPDATE_TASK",
+      "Task",
+      task._id,
+      {
+        tenantId: req.user.tenantId,
+        details: `Updated task: ${task.title}`,
+      }
+    );
 
-    res.json({ message: "Task updated", task });
+    // Notify task creator when task is completed
+    if (status === "completed") {
+      await createNotification({
+        tenantId: req.user.tenantId,
+        user: task.createdBy._id,
+        message: `Task "${task.title}" has been marked as completed.`,
+        type: "TASK_COMPLETED",
+        project: projectId,
+        task: task._id,
+      });
+    }
+
+    res.json({
+      message: "Task updated",
+      task,
+    });
   } catch (err) {
     err.statusCode = 500;
     err.message = "Error updating task";
@@ -203,36 +274,56 @@ if (status === "completed") {
 };
 
 // DELETE TASK (Only creator)
+// DELETE TASK (Only creator)
 exports.deleteTask = async (req, res, next) => {
   try {
     const { projectId, taskId } = req.params;
 
-    const task = await Task.findOne({ _id: taskId, tenantId: req.user.tenantId });
+    const task = await Task.findOne({
+      _id: taskId,
+      project: projectId,
+      tenantId: req.user.tenantId,
+    });
 
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      return res.status(404).json({
+        message: "Task not found",
+      });
     }
 
     if (!task.createdBy.equals(req.user.id)) {
-      return res.status(403).json({ message: "Only creator can delete task" });
+      return res.status(403).json({
+        message: "Only creator can delete task",
+      });
     }
 
-    // ✅ Log ONLY after authorization
-    await logActivity(req.user.id, "DELETE_TASK", "Task", taskId, {
+    // Log only after authorization
+    await logActivity(
+      req.user.id,
+      "DELETE_TASK",
+      "Task",
+      taskId,
+      {
+        tenantId: req.user.tenantId,
+        details: `Deleted task: ${task.title}`,
+      }
+    );
+
+    await Task.findOneAndDelete({
+      _id: taskId,
+      project: projectId,
       tenantId: req.user.tenantId,
-      details: `Deleted task`,
     });
 
-    await Task.findOneAndDelete({ _id: taskId, tenantId: req.user.tenantId });
-
-    res.json({ message: "Task deleted successfully" });
+    res.json({
+      message: "Task deleted successfully",
+    });
   } catch (err) {
     err.statusCode = 500;
     err.message = "Error deleting task";
     next(err);
   }
 };
-
 // ADD COMMENT TO TASK
 exports.addComment = async (req, res, next) => {
   try {
@@ -240,40 +331,70 @@ exports.addComment = async (req, res, next) => {
     const { text } = req.body;
 
     if (!text || !text.trim()) {
-      return res.status(400).json({ message: "Comment text required" });
+      return res.status(400).json({
+        message: "Comment text required",
+      });
     }
 
-    const project = await Project.findOne({ _id: projectId, tenantId: req.user.tenantId });
+    const project = await Project.findOne({
+      _id: projectId,
+      tenantId: req.user.tenantId,
+    });
+
     if (!project) {
-      return res.status(404).json({ message: "Project not found" });
+      return res.status(404).json({
+        message: "Project not found",
+      });
     }
 
-    const isMember = project.owner.equals(req.user.id) ||
-      project.members.some((member) => member.user.equals(req.user.id));
+    const isMember =
+      project.owner.equals(req.user.id) ||
+      project.members.some((member) =>
+        member.user.equals(req.user.id)
+      );
 
     if (!isMember) {
-      return res.status(403).json({ message: "Not a member of this project" });
+      return res.status(403).json({
+        message: "Not a member of this project",
+      });
     }
 
-    const task = await Task.findOne({ _id: taskId, project: projectId, tenantId: req.user.tenantId });
+    const task = await Task.findOne({
+      _id: taskId,
+      project: projectId,
+      tenantId: req.user.tenantId,
+    });
+
     if (!task) {
-      return res.status(404).json({ message: "Task not found" });
+      return res.status(404).json({
+        message: "Task not found",
+      });
     }
 
-    const commentPayload = createCommentPayload({ text }, req.user);
+    const commentPayload = createCommentPayload(
+      { text },
+      req.user
+    );
+
     task.comments.push(commentPayload);
+
     await task.save();
 
-    await task.populate("createdBy", "name email");
-    await task.populate("assignedTo", "name email");
     await task.populate("comments.author", "name email");
 
-    const newComment = task.comments[task.comments.length - 1];
+    const newComment =
+      task.comments[task.comments.length - 1];
 
-    await logActivity(req.user.id, "ADD_TASK_COMMENT", "Task", task._id, {
-      tenantId: req.user.tenantId,
-      details: `Added comment to task: ${task.title}`,
-    });
+    await logActivity(
+      req.user.id,
+      "ADD_TASK_COMMENT",
+      "Task",
+      task._id,
+      {
+        tenantId: req.user.tenantId,
+        details: `Added comment to task: ${task.title}`,
+      }
+    );
 
     res.status(201).json({
       message: "Comment added successfully",
@@ -286,6 +407,7 @@ exports.addComment = async (req, res, next) => {
     next(err);
   }
 };
+
 
 // GET COMMENTS FOR TASK
 exports.getTaskComments = async (req, res, next) => {

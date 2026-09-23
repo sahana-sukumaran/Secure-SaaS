@@ -8,10 +8,7 @@ import { useAuth } from "@/lib/auth";
 
 export const Route = createFileRoute("/activity")({
   head: () => ({
-    meta: [
-      { title: "Activity — SecureFlow" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Activity — SecureFlow" }, { name: "robots", content: "noindex" }],
   }),
   component: ActivityPage,
 });
@@ -42,9 +39,7 @@ function ActivityPage() {
     <AppShell>
       <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Activity log
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Activity log</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {isAdmin
               ? "All actions across your workspace."

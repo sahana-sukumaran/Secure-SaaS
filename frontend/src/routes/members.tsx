@@ -6,10 +6,7 @@ import { api, apiErrorMessage } from "@/lib/api";
 
 export const Route = createFileRoute("/members")({
   head: () => ({
-    meta: [
-      { title: "Members — SecureFlow" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Members — SecureFlow" }, { name: "robots", content: "noindex" }],
   }),
   component: MembersPage,
 });
@@ -25,9 +22,7 @@ function MembersPage() {
   const query = useQuery({
     queryKey: ["members"],
     queryFn: async () => {
-      const { data } = await api.get<{ members: Member[] }>(
-        "/api/projects/members"
-      );
+      const { data } = await api.get<{ members: Member[] }>("/api/projects/members");
       return data.members;
     },
   });
@@ -35,12 +30,8 @@ function MembersPage() {
   return (
     <>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Members
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          People in your workspace.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Members</h1>
+        <p className="mt-1 text-sm text-muted-foreground">People in your workspace.</p>
       </div>
 
       {query.isLoading ? (
@@ -63,12 +54,8 @@ function MembersPage() {
               </div>
 
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-foreground">
-                  {member.name}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {member.email}
-                </p>
+                <p className="text-sm font-semibold text-foreground">{member.name}</p>
+                <p className="text-xs text-muted-foreground">{member.email}</p>
               </div>
 
               {member.role ? (

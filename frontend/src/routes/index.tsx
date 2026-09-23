@@ -66,8 +66,8 @@ function Hero() {
             Secure project management for teams that ship.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-muted-foreground">
-            Projects, tasks, comments, notifications, and audit trails — with role-based access
-            and tenant isolation built in from day one.
+            Projects, tasks, comments, notifications, and audit trails — with role-based access and
+            tenant isolation built in from day one.
           </p>
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link
@@ -133,8 +133,8 @@ function FeatureGrid() {
             Built with security as the default.
           </h2>
           <p className="mt-3 text-muted-foreground">
-            Every core primitive — auth, tenants, RBAC, audit — is enforced server-side, so the
-            UI stays fast without cutting corners.
+            Every core primitive — auth, tenants, RBAC, audit — is enforced server-side, so the UI
+            stays fast without cutting corners.
           </p>
         </div>
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

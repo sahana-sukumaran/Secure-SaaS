@@ -7,10 +7,7 @@ import { api, apiErrorMessage } from "@/lib/api";
 
 export const Route = createFileRoute("/notifications")({
   head: () => ({
-    meta: [
-      { title: "Notifications — SecureFlow" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Notifications — SecureFlow" }, { name: "robots", content: "noindex" }],
   }),
   component: NotificationsPage,
 });
@@ -19,7 +16,7 @@ interface Notification {
   _id: string;
   message: string;
   type?: string;
-  read?: boolean;
+  isRead: boolean;
   createdAt?: string;
 }
 
@@ -54,9 +51,7 @@ function NotificationsPage() {
     <AppShell>
       <header className="flex items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-            Notifications
-          </h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Notifications</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Updates from your projects and tasks.
           </p>
@@ -85,15 +80,13 @@ function NotificationsPage() {
                 key={n._id}
                 className={
                   "flex items-start gap-3 rounded-xl border p-4 transition-colors " +
-                  (n.read
-                    ? "border-border bg-card"
-                    : "border-brand/30 bg-brand/5")
+                  (n.isRead ? "border-border bg-card" : "border-brand/30 bg-brand/5")
                 }
               >
                 <div
                   className={
                     "mt-0.5 grid h-8 w-8 place-items-center rounded-full " +
-                    (n.read ? "bg-muted text-muted-foreground" : "bg-brand text-brand-foreground")
+                    (n.isRead ? "bg-muted text-muted-foreground" : "bg-brand text-brand-foreground")
                   }
                 >
                   <Bell className="h-4 w-4" />
@@ -106,7 +99,7 @@ function NotificationsPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
-                  {!n.read ? (
+                  {!n.isRead ? (
                     <button
                       onClick={() => markRead.mutate(n._id)}
                       className="inline-flex items-center gap-1 rounded-md border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"

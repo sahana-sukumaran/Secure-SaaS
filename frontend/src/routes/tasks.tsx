@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { CheckCircle2, Circle, Clock, Flag, Loader2 } from "lucide-react";
 
@@ -7,16 +7,11 @@ import { api, apiErrorMessage } from "@/lib/api";
 export const Route = createFileRoute("/tasks")({
   validateSearch: (search: Record<string, unknown>) => ({
     status:
-      search.status === "completed" || search.status === "pending"
-        ? search.status
-        : undefined,
+      search.status === "completed" || search.status === "pending" ? search.status : undefined,
   }),
 
   head: () => ({
-    meta: [
-      { title: "Tasks — SecureFlow" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Tasks — SecureFlow" }, { name: "robots", content: "noindex" }],
   }),
   component: TasksPage,
 });
@@ -49,10 +44,7 @@ function TasksPage() {
           ? { status: search.status }
           : undefined;
 
-      const { data } = await api.get<{ tasks: Task[] }>(
-        "/api/projects/tasks",
-        { params }
-      );
+      const { data } = await api.get<{ tasks: Task[] }>("/api/projects/tasks", { params });
 
       return data.tasks;
     },
@@ -68,9 +60,7 @@ function TasksPage() {
   return (
     <>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          {title}
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{title}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           View and manage tasks across your workspace.
         </p>
@@ -86,9 +76,7 @@ function TasksPage() {
         </div>
       ) : !query.data || query.data.length === 0 ? (
         <div className="mt-8 rounded-xl border border-dashed border-border bg-card p-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            No tasks found.
-          </p>
+          <p className="text-sm text-muted-foreground">No tasks found.</p>
         </div>
       ) : (
         <ul className="mt-8 grid gap-3">
@@ -110,25 +98,26 @@ function TasksPage() {
                   <p
                     className={
                       "text-sm font-medium " +
-                      (completed
-                        ? "text-muted-foreground line-through"
-                        : "text-foreground")
+                      (completed ? "text-muted-foreground line-through" : "text-foreground")
                     }
                   >
                     {task.title}
                   </p>
 
                   {task.description ? (
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {task.description}
-                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">{task.description}</p>
                   ) : null}
 
                   <div className="mt-2 flex flex-wrap gap-3 text-[11px] text-muted-foreground">
                     {task.project ? (
-                      <span>{task.project.name}</span>
-                    ) : null}
-
+  <Link
+    to="/projects/$projectId"
+    params={{ projectId: task.project._id }}
+    className="text-brand hover:underline"
+  >
+    {task.project.name}
+  </Link>
+) : null}
                     {task.priority ? (
                       <span className="inline-flex items-center gap-1">
                         <Flag className="h-3 w-3" />

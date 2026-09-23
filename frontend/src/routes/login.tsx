@@ -99,10 +99,7 @@ function LoginPage() {
       footer={
         <>
           Don't have an account?{" "}
-          <Link
-            to="/register"
-            className="font-medium text-brand hover:underline"
-          >
+          <Link to="/register" className="font-medium text-brand hover:underline">
             Create one
           </Link>
         </>
@@ -131,9 +128,7 @@ function LoginPage() {
 
         {/* Password */}
         <div>
-          <label className="text-sm font-medium text-foreground">
-            Password
-          </label>
+          <label className="text-sm font-medium text-foreground">Password</label>
 
           <div className="relative mt-1.5">
             <input
@@ -149,16 +144,10 @@ function LoginPage() {
             <button
               type="button"
               onClick={() => setShowPassword((prev) => !prev)}
-              aria-label={
-                showPassword ? "Hide password" : "Show password"
-              }
+              aria-label={showPassword ? "Hide password" : "Show password"}
               className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring/40"
             >
-              {showPassword ? (
-                <EyeOff className="h-4 w-4" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
         </div>
@@ -204,15 +193,10 @@ function Field({
   onChange: (v: string) => void;
   type?: string;
   hint?: string;
-} & Omit<
-  React.InputHTMLAttributes<HTMLInputElement>,
-  "value" | "onChange" | "type"
->) {
+} & Omit<React.InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type">) {
   return (
     <label className="block">
-      <span className="text-sm font-medium text-foreground">
-        {label}
-      </span>
+      <span className="text-sm font-medium text-foreground">{label}</span>
 
       <input
         {...rest}
@@ -222,11 +206,7 @@ function Field({
         className="mt-1.5 block h-11 w-full rounded-lg border border-input bg-card px-3 text-sm text-foreground shadow-sm outline-none transition-all placeholder:text-muted-foreground hover:border-ring/60 focus:border-ring focus:ring-2 focus:ring-ring/30"
       />
 
-      {hint ? (
-        <span className="mt-1.5 block text-xs text-muted-foreground">
-          {hint}
-        </span>
-      ) : null}
+      {hint ? <span className="mt-1.5 block text-xs text-muted-foreground">{hint}</span> : null}
     </label>
   );
 }

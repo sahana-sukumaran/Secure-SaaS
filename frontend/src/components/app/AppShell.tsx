@@ -56,8 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
           <nav className="hidden items-center gap-1 md:flex">
             {NAV.map((item) => {
-              const active =
-                pathname === item.to || pathname.startsWith(item.to + "/");
+              const active = pathname === item.to || pathname.startsWith(item.to + "/");
               return (
                 <Link
                   key={item.to}
@@ -92,8 +91,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         </div>
         <nav className="mx-auto flex w-full max-w-6xl gap-1 overflow-x-auto px-4 pb-2 md:hidden">
           {NAV.map((item) => {
-            const active =
-              pathname === item.to || pathname.startsWith(item.to + "/");
+            const active = pathname === item.to || pathname.startsWith(item.to + "/");
             return (
               <Link
                 key={item.to}

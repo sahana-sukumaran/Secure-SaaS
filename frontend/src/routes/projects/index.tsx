@@ -1,23 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, type FormEvent } from "react";
-import {
-  FolderKanban,
-  Plus,
-  Loader2,
-  AlertTriangle,
-  ArrowRight,
-  Users,
-} from "lucide-react";
+import { FolderKanban, Plus, Loader2, AlertTriangle, ArrowRight, Users } from "lucide-react";
 
 import { api, apiErrorMessage } from "@/lib/api";
 
 export const Route = createFileRoute("/projects/")({
   head: () => ({
-    meta: [
-      { title: "Projects — SecureFlow" },
-      { name: "robots", content: "noindex" },
-    ],
+    meta: [{ title: "Projects — SecureFlow" }, { name: "robots", content: "noindex" }],
   }),
   component: ProjectsPage,
 });
@@ -107,9 +97,7 @@ function ProjectsPage() {
                     <div className="min-w-0">
                       <div className="flex items-center gap-2">
                         <FolderKanban className="h-4 w-4 text-brand" />
-                        <h3 className="truncate text-sm font-semibold text-foreground">
-                          {p.name}
-                        </h3>
+                        <h3 className="truncate text-sm font-semibold text-foreground">{p.name}</h3>
                         {p.status ? (
                           <span className="rounded-full border border-border bg-background px-2 py-0.5 text-[11px] text-muted-foreground">
                             {p.status}

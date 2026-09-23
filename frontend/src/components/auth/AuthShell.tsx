@@ -1,11 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import {
-  ShieldCheck,
-  LockKeyhole,
-  Users,
-  Activity,
-} from "lucide-react";
+import { ShieldCheck, LockKeyhole, Users, Activity } from "lucide-react";
 
 export function AuthShell({
   title,
@@ -31,28 +26,20 @@ export function AuthShell({
             <ShieldCheck className="h-5 w-5" />
           </div>
 
-          <span className="text-base font-semibold tracking-tight text-foreground">
-            SecureFlow
-          </span>
+          <span className="text-base font-semibold tracking-tight text-foreground">SecureFlow</span>
         </Link>
 
         {/* FORM AREA */}
         <div className="flex flex-1 items-center justify-center py-12">
           <div className="w-full max-w-[360px]">
-            <h1 className="text-3xl font-semibold tracking-tight text-foreground">
-              {title}
-            </h1>
+            <h1 className="text-3xl font-semibold tracking-tight text-foreground">{title}</h1>
 
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              {subtitle}
-            </p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">{subtitle}</p>
 
             <div className="mt-7">{children}</div>
 
             {footer ? (
-              <div className="mt-6 text-center text-sm text-muted-foreground">
-                {footer}
-              </div>
+              <div className="mt-6 text-center text-sm text-muted-foreground">{footer}</div>
             ) : null}
           </div>
         </div>
@@ -66,10 +53,7 @@ export function AuthShell({
 
       {/* RIGHT — SECURITY / PRODUCT PANEL */}
       <aside className="relative hidden overflow-hidden bg-hero-gradient lg:block">
-        <div
-          className="absolute inset-0 bg-grid-brand opacity-20"
-          aria-hidden
-        />
+        <div className="absolute inset-0 bg-grid-brand opacity-20" aria-hidden />
 
         {/* subtle glow */}
         <div
@@ -89,8 +73,8 @@ export function AuthShell({
             </h2>
 
             <p className="mt-5 max-w-md text-sm leading-6 text-primary-foreground/75">
-              Multi-tenant isolation, role-based access, and audited activity —
-              so your team can focus on the work, not the plumbing.
+              Multi-tenant isolation, role-based access, and audited activity — so your team can
+              focus on the work, not the plumbing.
             </p>
 
             {/* SECURITY FEATURES */}
@@ -122,20 +106,11 @@ export function AuthShell({
             </p>
 
             <div className="grid grid-cols-3 gap-4">
-              <Metric
-                label="Projects"
-                value="2"
-              />
+              <Metric label="Projects" value="2" />
 
-              <Metric
-                label="Tasks"
-                value="1"
-              />
+              <Metric label="Tasks" value="1" />
 
-              <Metric
-                label="Members"
-                value="3"
-              />
+              <Metric label="Members" value="3" />
             </div>
 
             <div className="mt-5 flex items-center gap-2 border-t border-white/10 pt-4">
@@ -167,31 +142,19 @@ function SecurityFeature({
       </div>
 
       <div>
-        <p className="text-sm font-medium text-primary-foreground">
-          {title}
-        </p>
+        <p className="text-sm font-medium text-primary-foreground">{title}</p>
 
-        <p className="mt-0.5 text-xs leading-5 text-primary-foreground/55">
-          {description}
-        </p>
+        <p className="mt-0.5 text-xs leading-5 text-primary-foreground/55">{description}</p>
       </div>
     </div>
   );
 }
 
-function Metric({
-  label,
-  value,
-}: {
-  label: string;
-  value: string;
-}) {
+function Metric({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-xs text-primary-foreground/50">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-primary-foreground">
-        {value}
-      </p>
+      <p className="mt-1 text-2xl font-semibold text-primary-foreground">{value}</p>
     </div>
   );
 }
