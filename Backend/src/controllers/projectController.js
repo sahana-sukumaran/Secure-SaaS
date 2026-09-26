@@ -187,10 +187,14 @@ exports.addMember = async (req, res, next) => {
       return res.status(400).json({ message: "User already a member" });
     }
 
-    project.members.push({
-      user: userId,
-      role: role || "member",
-    });
+    const memberRole = ["manager", "member"].includes(role)
+  ? role
+  : "member";
+
+project.members.push({
+  user: userId,
+  role: memberRole,
+});
 
     await project.save();
     await project.populate("members.user", "name email");

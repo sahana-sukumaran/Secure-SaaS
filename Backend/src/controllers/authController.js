@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 // REGISTER
 exports.register = async (req, res, next) => {
   try {
-    const { name, email, password, role, tenantId } = req.body;
+    const { name, email, password, tenantId } = req.body;
 
     if (!name || !email || !password || !tenantId)
       return res.status(400).json({ message: "All fields required (tenantId required)" });
@@ -21,7 +21,7 @@ exports.register = async (req, res, next) => {
       name,
       email,
       password: hashedPassword,
-      role: role || "member", // Allow role to be set, defaults to member
+      role: "member",// Allow role to be set, defaults to member
     });
 
     res.status(201).json({
